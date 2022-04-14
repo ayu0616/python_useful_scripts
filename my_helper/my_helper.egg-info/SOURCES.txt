@@ -1,0 +1,7 @@
+setup.py
+my_helper/__init__.py
+my_helper/my_helper.py
+my_helper.egg-info/PKG-INFO
+my_helper.egg-info/SOURCES.txt
+my_helper.egg-info/dependency_links.txt
+my_helper.egg-info/top_level.txt
