@@ -1,6 +1,6 @@
 from tkinter import filedialog, Tk
 import os
-from typing import List, Callable, TypeVar, Union
+from typing import Iterable, List, Callable, SupportsIndex, TypeVar, Union, overload
 import re
 import cv2
 import numpy as np
@@ -34,15 +34,14 @@ S = TypeVar("S")
 
 
 class MyList(List[T]):
-    def __init__(self, li: Union[List[T], filter, map] = []):
+    def __init__(self, li: Iterable[T] = []):
         super().__init__(li)
 
     def filter(self, func: Callable[[T], bool]):
         return MyList(filter(func, self))
 
-    def map(self, func: Callable[[T], S]):
-        li: MyList[S] = MyList(map(func, self))
-        return li
+    def map(self, func: Callable[[T], S]) -> "MyList[S]":
+        return MyList(map(func, self))
 
     def length(self):
         return self.__len__()
@@ -55,39 +54,59 @@ class MyList(List[T]):
         filtered = self.filter(func)
         return bool(filtered.length())
 
-
-class MyStringList(MyList[str]):
-    def __init__(self, li: Union[List[str], filter, map] = []):
-        super().__init__(li)
-
-    def filter(self, func: Callable[[str], bool]):
-        return MyStringList(filter(func, self))
-
-    def map(self, func: Callable[[str], T]):
-        mapped = map(func, self)
-        if self.all_bool(lambda x: type(x) is str):
-            li_str = MyStringList(mapped)
-            return li_str
+    def is_all_str(self):
+        if not self.all_bool(lambda x: type(x) is str):
+            raise TypeError("この配列に文字列ではない要素が含まれています")
         else:
-            li_any: MyList[T] = MyList(mapped)
-            return li_any
+            return True
 
-    def match_filter(self, pattern: str, toggle_not=False):
-        if toggle_not:
-            return self.filter(lambda x: not re.match(pattern, x))
-        else:
-            return self.filter(lambda x: bool(re.match(pattern, x)))
+    def match_filter(self: "MyList[str]", pattern: str, toggle_not=False):
+        return self.filter(lambda x: bool(int(bool(re.match(pattern, x)))-int(toggle_not)))
 
-    def sub(self, before: str, after: str):
+    def sub(self: "MyList[str]", before: str, after: str):
         """
-        文字列を置き換える
+        文字列を置き換える\n
         re.sub()を使う
         """
-        substituted: MyStringList = self.map(lambda x: re.sub(before, after, x))
-        return substituted
+        return self.map(lambda x: re.sub(before, after, x))
 
     def join(self, string: str):
         return string.join(self.map(str))
+
+    def __add__(self, other: Iterable[T]):
+        new_li = self
+        for other_value in other:
+            new_li.append(other_value)
+        return new_li
+
+    def __and__(self, other: Iterable[T]):
+        new_li = self.filter(lambda x: x in other)
+        return new_li
+
+    def __or__(self, other: Iterable[T]):
+        new_li = self
+        for other_value in other:
+            if other_value not in self:
+                self.append(other_value)
+        return new_li
+
+    @overload
+    def __getitem__(self, index: SupportsIndex) -> T:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> "MyList[T]":
+        ...
+
+    def __getitem__(self, index: Union[SupportsIndex, slice]):
+        if type(index) is int:
+            item = super().__getitem__(index)
+            return item
+        elif type(index) is slice:
+            items = MyList(super().__getitem__(index))
+            return items
+        else:
+            raise Exception("slice / index が間違っています")
 
 
 def cut_by_content(img_path: str):
@@ -105,8 +124,8 @@ def cut_by_content(img_path: str):
     cv2.imwrite(img_path, cutted_img)
 
 
-def my_glob(path: str):
-    return MyStringList(glob.glob(path))
+def my_glob(path: str, recursive: bool = False):
+    return MyList(glob.glob(path, recursive=recursive))
 
 
 def read_text_file(path: str):
