@@ -83,6 +83,13 @@ class MyList(List[T]):
         new_li = self.filter(lambda x: x in other)
         return new_li
 
+    def original(self):
+        new_li = MyList()
+        for value in self:
+            if value not in new_li:
+                new_li.append(value)
+        return new_li
+
     def __or__(self, other: Iterable[T]):
         new_li = self
         for other_value in other:
@@ -107,6 +114,10 @@ class MyList(List[T]):
             return items
         else:
             raise Exception("slice / index が間違っています")
+
+    def remove_all(self, x: T):
+        while x in self:
+            self.remove(x)
 
 
 def cut_by_content(img_path: str):
