@@ -1,4 +1,4 @@
-from tkinter import filedialog, Tk
+from tkinter import filedialog, Tk, simpledialog
 import os
 from typing import Iterable, List, Callable, SupportsIndex, TypeVar, Union, overload
 import re
@@ -20,13 +20,47 @@ def get_file_path(initial_dir: str = os.path.dirname(__file__)):
     # ダイアログを前面に
     root.lift()
     root.focus_force()
-    # 動画プロジェクトのディレクトリ
     path = filedialog.askopenfilename(initialdir=initial_dir)
     root.update()
     # ディレクトリが選択されなかったらエラーを発生させる
     if not path:
         raise Exception("ファイルが選択されていません")
     return path
+
+
+def get_dir_path(initial_dir: str = os.path.dirname(__file__)):
+    # ダイアログ用のルートウィンドウの作成
+    root = Tk()
+    # ウィンドウサイズを0にする（Windows用の設定）
+    root.geometry("0x0")
+    # ウィンドウのタイトルバーを消す（Windows用の設定）
+    # root.overrideredirect(1)
+    # ウィンドウを非表示に
+    root.withdraw()
+    root.update()
+    # ダイアログを前面に
+    root.lift()
+    root.focus_force()
+    dir_path = filedialog.askdirectory(initialdir=initial_dir)
+    root.update()
+    # ディレクトリが選択されなかったらエラーを発生させる
+    if not dir_path:
+        raise Exception("ディレクトリが選択されていません")
+    return dir_path
+
+
+def require_input(ask_text: str):
+    "tkinterで入力を要求し、入力された値を返す"
+    # ダイアログ用のルートウィンドウの作成
+    root = Tk()
+    # ウィンドウを非表示に
+    root.withdraw()
+
+    inputstr = simpledialog.askstring("入力欄", ask_text)
+    # 先頭が空白文字ならそれを削除する
+    while inputstr[0] == " ":
+        inputstr = inputstr[1:]
+    return inputstr
 
 
 T = TypeVar("T")
@@ -70,7 +104,7 @@ class MyList(List[T]):
         """
         return self.map(lambda x: re.sub(before, after, x))
 
-    def join(self, string: str):
+    def join(self, string: str = ""):
         return string.join(self.map(str))
 
     def __add__(self, other: Iterable[T]):
@@ -118,6 +152,42 @@ class MyList(List[T]):
     def remove_all(self, x: T):
         while x in self:
             self.remove(x)
+
+    def flatten(self):
+        new_li = MyList()
+        for el in self:
+            if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
+                for value in el:
+                    new_li.append(value)
+            else:
+                new_li.append(el)
+        return new_li
+
+    @classmethod
+    def fill(self, value: T, count: int):
+        """
+        valueをcount回埋めたリストを返す関数\n
+        もとのリストは消えてしまうので注意
+        """
+        new_list: MyList[T] = MyList()
+        for _ in range(count):
+            new_list.append(value)
+        return new_list
+
+    def divide_inside(self, *counts: int):
+        """
+        リスト内を分割する関数\n
+        [1, 2, 3, 4, 5, 6, 7, 8]に対してcounts=(1, 2, 3)と入力すると[[1], [2, 3], [4, 5, 6], 7, 8]を返す\n
+        countsの合計がリストの長さと等しくなかったらエラー
+        """
+        if sum(counts) > self.length():
+            raise ValueError("countsの合計リストのが長さと異なります")
+        new_list: MyList[MyList[T]] = MyList()
+        sum_count = 0
+        for count in counts:
+            new_list.append(self[sum_count:count+sum_count])
+            sum_count += count
+        return new_list
 
 
 def cut_by_content(img_path: str):
