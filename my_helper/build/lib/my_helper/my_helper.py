@@ -1,6 +1,6 @@
 from tkinter import filedialog, Tk, simpledialog
 import os
-from typing import Iterable, Callable, SupportsIndex, TypeVar, overload
+from typing import Iterable, Callable, SupportsIndex, TypeVar, Union, overload
 import re
 import cv2
 import numpy as np
