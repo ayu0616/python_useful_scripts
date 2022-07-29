@@ -23,17 +23,17 @@ else:
     img = np.append(img, extend_horizontal, axis=1)
     img = np.append(extend_horizontal, img, axis=1)
     # 続いて縦
-    extend_vertical = np.full((outline_width, width+outline_width*2, 4), 0)
+    extend_vertical = np.full((outline_width, width + outline_width * 2, 4), 0)
     img = np.append(img, extend_vertical, axis=0)
     img = np.append(extend_vertical, img, axis=0)
     raw_img = img.copy()
 
     img[img[:, :, 3] != 0] = np.full(4, 255)
-    for n in range(1, outline_width+1):
+    for n in range(1, outline_width + 1):
         row_index, column_index = np.where(img[:, :, 3] != 0)
         for i in [-1, 1]:
-            img[row_index+i, column_index] = np.full(4, 255)
-            img[row_index, column_index+i] = np.full(4, 255)
+            img[row_index + i, column_index] = np.full(4, 255)
+            img[row_index, column_index + i] = np.full(4, 255)
 
     img = Image.fromarray(img.astype(np.uint8), mode="RGBA")
     raw_img = Image.fromarray(raw_img.astype(np.uint8), mode="RGBA")

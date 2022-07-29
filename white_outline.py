@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw
+
 # from helper import get_file_path
 import math
 
@@ -14,7 +15,7 @@ def white_outline(fname: str):
     # キャンバスを作成
     # この画像に枠線と元の画像を合成する
     cw, ch = sw + line_width * 2, sh + line_width * 2  # キャンバスのサイズを元の画像から生成
-    canvas_im = Image.new('RGB', (cw, ch))
+    canvas_im = Image.new("RGB", (cw, ch))
 
     # キャンバスのImageDrawオブジェクトを作成
     canvas = ImageDraw.Draw(canvas_im)
